@@ -21,6 +21,7 @@ def classify_image(model, image):
     try:
         processed_image = preprocess_image(image)
         predictions = model.predict(processed_image)
+        # Return the top 3 predictions
         return decode_predictions(predictions, top=3)[0]
     
     except Exception as e:
@@ -28,30 +29,33 @@ def classify_image(model, image):
         return None
     
 def main():
-    st.set_page_config(page_title="AI Image Classifier", page_icon="🔎", layout="centered")
-
+    # Set up UI configuration
+    st.set_page_config(
+        page_title="AI Image Classifier", page_icon="🔎", layout="centered"
+    )
     st.title("AI Image Classifier")
     st.write("Upload an image and let AI tell you what's in it!")
 
+    # Cache the model to avoid reloading it upon app refresh
     @st.cache_resource
     def load_cached_model():
         return load_model()
     
     model = load_cached_model()
-
     uploaded_file = st.file_uploader("Choose an image:", type=["jpg", "png"])
 
+    # On upload, render the button to trigger classification
     if uploaded_file is not None:
         image = st.image(
             uploaded_file, caption="Uploaded Image", use_container_width=True
         )
         btn = st.button("Classify Image")
-
+        # When the button is pressed, classify the image
         if btn:
             with st.spinner("Classifying Image..."):
                 image = Image.open(uploaded_file)
                 predictions = classify_image(model, image)
-
+                # Print the top 3 predictions
                 if predictions:
                     st.subheader("Predictions:")
                     for _, label, score in predictions:
